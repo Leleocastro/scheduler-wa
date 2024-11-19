@@ -1,0 +1,16 @@
+whatsapp-api/node_modules/
+whatsapp-api/.wwebjs_auth/
+whatsapp-api/.wwebjs_cache/
+
+db_data/
+
+# Compiled JavaScript files
+functions/lib/**/*.js
+functions/lib/**/*.js.map
+
+# TypeScript v1 declaration files
+functions/typings/
+
+# Node.js dependency directory
+functions/node_modules/
+functions/*.local

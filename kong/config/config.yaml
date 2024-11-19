@@ -1,0 +1,16 @@
+_format_version: "2.1"
+_transform: true
+services:
+  - name: whatsapp-api
+    url: http://host.docker.internal:3000
+    routes:
+      - name: whatsapp-route
+        paths:
+          - /whatsapp/v1
+
+  - name: complete-api
+    url: http://host.docker.internal:4000
+    routes:
+      - name: complete-route
+        paths:
+          - /api/v1
