@@ -37,10 +37,16 @@ whatsappRouter.post("/create-session", (req, res) => {
     takeoverOnConflict: true,
     takeoverTimeoutMs: 10,
     puppeteer: {
+      headless: true,
       args: [
         "--no-sandbox",
         "--disable-dev-shm-usage",
         "--disabled-setupid-sandbox",
+        "--disable-accelerated-2d-canvas",
+        "--no-first-run",
+        "--no-zygote",
+        "--single-process", // Adicione este argumento se necessário
+        "--disable-gpu",
       ],
     },
   });
@@ -57,6 +63,18 @@ whatsappRouter.post("/create-session", (req, res) => {
     console.log("Client is ready!");
 
     sessions[phoneNumber].isReady = true;
+  });
+
+  client.on("authenticated", () => {
+      console.log("Authenticated");
+  });
+  
+  client.on("auth_failure", (msg) => {
+      console.error("AUTH FAILURE", msg);
+  });
+  
+  client.on("disconnected", (reason) => {
+      console.log("Client was logged out", reason);
   });
 
   client
