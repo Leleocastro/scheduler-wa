@@ -2,8 +2,10 @@ package main
 
 import (
 	"complete-api/internal/adapters/handlers/checkouthdl"
+	"complete-api/internal/adapters/handlers/gatewayhdl"
 	"complete-api/internal/adapters/repositories/api_gateway"
 	"complete-api/internal/core/services/checkoutsrv"
+	"complete-api/internal/core/services/gatewaysrv"
 	"database/sql"
 	"fmt"
 	"os"
@@ -38,7 +40,7 @@ func main() {
 	// Inicializa a conexão com o banco de dados
 	initDB()
 
-	kongRepo := api_gateway.New("http://host.docker.internal:8001")
+	kongRepo := api_gateway.New("http://172.17.0.1:8001")
 
 	// Cria o router Gin
 	router := gin.Default()
@@ -50,6 +52,15 @@ func main() {
 		checkoutHandler := checkouthdl.NewHTTPHandler(checkoutSrv)
 
 		checkout.POST("/webhook", checkoutHandler.Checkout)
+	}
+
+	kong := router.Group("/gateway")
+	{
+		gatewaySrv := gatewaysrv.New(kongRepo)
+
+		gatewayHandler := gatewayhdl.NewHTTPHandler(gatewaySrv)
+
+		kong.POST("/consumer", gatewayHandler.CreateConsumer)
 	}
 
 	router.Run(":4000")
