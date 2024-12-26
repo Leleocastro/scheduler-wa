@@ -1,19 +1,32 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * import {onCall} from "firebase-functions/v2/https";
- * import {onDocumentWritten} from "firebase-functions/v2/firestore";
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
+const functions = require("firebase-functions");
+const admin = require("firebase-admin");
+const axios = require("axios");
 
-import {onRequest} from "firebase-functions/v2/https";
-import * as logger from "firebase-functions/logger";
+admin.initializeApp();
 
-// Start writing functions
-// https://firebase.google.com/docs/functions/typescript
+exports.createUserConsumer = functions.auth
+  .user()
+  .onCreate(async (user: any) => {
+    const username = user.email || user.displayName || user.uid;
+    const customId = user.uid;
 
-// export const helloWorld = onRequest((request, response) => {
-//   logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+    const body = {
+      username: username,
+      custom_id: customId,
+    };
+
+    try {
+      const response = await axios.post(
+        "http://ltag.ddns.net/gateway/consumer",
+        body
+      );
+
+      if (response.status === 200) {
+        console.log("Consumer criado com sucesso no API Gateway");
+      } else {
+        console.error("Erro ao criar consumer: ", response.statusText);
+      }
+    } catch (error) {
+      console.error("Erro ao chamar API: ", error);
+    }
+  });
