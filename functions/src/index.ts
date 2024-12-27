@@ -1,13 +1,16 @@
-const functions = require("firebase-functions");
-const admin = require("firebase-admin");
-const axios = require("axios");
+import { UserRecord } from "firebase-admin/auth";
+
+import * as functions from "firebase-functions/v1";
+import * as admin from "firebase-admin";
+import axios from "axios";
 
 admin.initializeApp();
 
-exports.createUserConsumer = functions.auth
+export const createUserConsumer = functions.auth
   .user()
-  .onCreate(async (user: any) => {
-    const username = user.email || user.displayName || user.uid;
+  .onCreate(async (user: UserRecord) => {
+    functions.logger.info("User: ", user);
+    const username = user.email;
     const customId = user.uid;
 
     const body = {
@@ -15,18 +18,25 @@ exports.createUserConsumer = functions.auth
       custom_id: customId,
     };
 
+    functions.logger.info("Body: ", body);
+
     try {
       const response = await axios.post(
         "http://ltag.ddns.net/gateway/consumer",
-        body
+        body,
+        {
+          headers: {
+            apikey: "VFj2U7wsGCWax04zzwZrSa2vNhAtDMKy",
+          },
+        }
       );
 
       if (response.status === 200) {
-        console.log("Consumer criado com sucesso no API Gateway");
+        functions.logger.info("Consumer criado com sucesso no API Gateway");
       } else {
-        console.error("Erro ao criar consumer: ", response.statusText);
+        functions.logger.error("Erro ao criar consumer: ", response.statusText);
       }
     } catch (error) {
-      console.error("Erro ao chamar API: ", error);
+      functions.logger.error("Erro ao chamar API: ", error);
     }
   });
