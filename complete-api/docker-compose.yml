@@ -1,0 +1,18 @@
+version: "3.8"
+
+services:
+  complete-api:
+    build: .
+    container_name: complete-api
+    ports:
+      - "6000:6000"
+    environment:
+      - REDIS_HOST=	scheduler_n8n-redis
+      - POSTGRES_HOST=scheduler_n8n-postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=c390ac090d228ee3ba4d
+      - POSTGRES_DB=scheduler
+      - POSTGRES_PORT=5432
+    depends_on:
+      - scheduler_n8n-redis
+      - scheduler_n8n-postgres
