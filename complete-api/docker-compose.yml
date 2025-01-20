@@ -13,6 +13,3 @@ services:
       - POSTGRES_PASSWORD=c390ac090d228ee3ba4d
       - POSTGRES_DB=scheduler
       - POSTGRES_PORT=5432
-    depends_on:
-      - scheduler_n8n-redis
-      - scheduler_n8n-postgres
