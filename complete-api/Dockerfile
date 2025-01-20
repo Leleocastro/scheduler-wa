@@ -15,7 +15,7 @@ COPY . .
 RUN go build -o /complete-api
 
 # Expõe a porta que a aplicação irá usar
-EXPOSE 4000
+EXPOSE 6000
 
 # Comando para rodar a aplicação
 CMD ["/complete-api"]
