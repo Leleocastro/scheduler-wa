@@ -40,7 +40,7 @@ func main() {
 	// Inicializa a conexão com o banco de dados
 	initDB()
 
-	kongRepo := api_gateway.New("http://172.17.0.1:8001")
+	kongRepo := api_gateway.New(os.Getenv("KONG_ADMIN_URL"))
 
 	// Cria o router Gin
 	router := gin.Default()
