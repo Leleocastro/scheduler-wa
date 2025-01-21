@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
 )
 
 type kongAPI struct {
@@ -42,7 +41,6 @@ func (s *kongAPI) CreateConsumer(username, customID string) error {
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("apikey", os.Getenv("KONG_API_KEY"))
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -87,7 +85,6 @@ func (s *kongAPI) RateLimitConsumer(username, route string, rateLimit int) error
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("apikey", os.Getenv("KONG_API_KEY"))
 
 	client := &http.Client{}
 	resp, err := client.Do(req)

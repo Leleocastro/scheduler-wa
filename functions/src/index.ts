@@ -22,7 +22,7 @@ export const createUserConsumer = functions.auth
 
     try {
       const response = await axios.post(
-        "http://ltag.ddns.net/gateway/consumer",
+        "https://api.l2msg.com/gateway/consumer",
         body,
         {
           headers: {
