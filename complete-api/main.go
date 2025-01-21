@@ -27,11 +27,11 @@ func initDB() {
 		os.Getenv("POSTGRES_DB"))
 	db, err = sql.Open("postgres", connStr)
 	if err != nil {
-		panic(err)
+		panic(err.Error())
 	}
 	err = db.Ping()
 	if err != nil {
-		panic(err)
+		panic(err.Error())
 	}
 	fmt.Println("Conectado ao banco de dados com sucesso!")
 }
