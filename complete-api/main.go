@@ -63,5 +63,5 @@ func main() {
 		kong.POST("/consumer", gatewayHandler.CreateConsumer)
 	}
 
-	router.Run(":4000")
+	router.Run(":6000")
 }
