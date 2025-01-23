@@ -14,3 +14,5 @@ functions/typings/
 # Node.js dependency directory
 functions/node_modules/
 functions/*.local
+
+complete-api/.env

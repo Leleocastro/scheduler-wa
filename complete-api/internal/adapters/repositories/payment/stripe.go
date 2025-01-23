@@ -1,6 +1,8 @@
 package payment
 
 import (
+	"log"
+
 	stripe "github.com/stripe/stripe-go/v81"
 	"github.com/stripe/stripe-go/v81/price"
 	"github.com/stripe/stripe-go/v81/webhook"
@@ -12,6 +14,9 @@ type StripeClient struct {
 
 func New(secretKey, webhookSecret string) *StripeClient {
 	stripe.Key = secretKey
+
+	log.Println("Stripe secret key: ", secretKey)
+	log.Println("Stripe webhook secret: ", webhookSecret)
 
 	return &StripeClient{
 		webhookSecret: webhookSecret,
