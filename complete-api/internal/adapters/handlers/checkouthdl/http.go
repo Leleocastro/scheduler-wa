@@ -29,6 +29,11 @@ func (h *HTTPHandler) Checkout(c *gin.Context) {
 		return
 	}
 
+	if event.Data.Object.PaymentStatus != "paid" {
+		c.JSON(400, gin.H{"error": "Payment not completed"})
+		return
+	}
+
 	plan, err := h.paymentSrv.GetPlanByPriceID(event.Data.Object.Metadata.PriceID)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})

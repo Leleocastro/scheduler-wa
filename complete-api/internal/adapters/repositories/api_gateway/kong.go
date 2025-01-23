@@ -56,8 +56,6 @@ func (s *kongAPI) CreateConsumer(username, customID string) error {
 func (s *kongAPI) RateLimitConsumer(username, route string, rateLimit int) error {
 	url := fmt.Sprintf("%s/consumers/%s/plugins", s.baseURL, username)
 
-	fmt.Println("URL:", url)
-
 	rateLimiting := map[string]any{
 		"name": "rate-limiting",
 		"route": map[string]string{

@@ -3,7 +3,6 @@ package validatorhdl
 import (
 	"bytes"
 	"complete-api/internal/core/ports"
-	"encoding/json"
 	"io"
 	"log"
 
@@ -24,12 +23,6 @@ func (h *ValidatorHandler) ValidateSignature(c *gin.Context) {
 	payload, err := io.ReadAll(c.Request.Body)
 	if err != nil {
 		log.Printf("Erro ao ler o corpo da requisição: %v", err)
-		body, err := json.MarshalIndent(c.Request.Body, "", "  ")
-		if err != nil {
-			log.Printf("Erro ao converter price para JSON: %v", err)
-		} else {
-			log.Println("Price: ", string(body))
-		}
 		c.JSON(400, gin.H{"error": "Invalid JSON format"})
 		return
 	}
