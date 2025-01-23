@@ -19,22 +19,18 @@ func New(baseURL string) *kongAPI {
 }
 
 func (s *kongAPI) CreateConsumer(username, customID string) error {
-	// Definindo a URL do endpoint de consumidores
 	url := fmt.Sprintf("%s/consumers", s.baseURL)
 
-	// Criando a estrutura do consumidor
 	consumer := domain.Consumer{
 		Username: username,
 		CustomID: customID,
 	}
 
-	// Convertendo a estrutura para JSON
 	payload, err := json.Marshal(consumer)
 	if err != nil {
 		return fmt.Errorf("erro ao criar payload do consumidor: %w", err)
 	}
 
-	// Fazendo a requisição POST para o Kong
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
 	if err != nil {
 		return fmt.Errorf("erro ao criar requisição HTTP: %w", err)
@@ -58,27 +54,25 @@ func (s *kongAPI) CreateConsumer(username, customID string) error {
 }
 
 func (s *kongAPI) RateLimitConsumer(username, route string, rateLimit int) error {
-	// Definindo a URL do endpoint de limites de taxa
 	url := fmt.Sprintf("%s/consumers/%s/plugins", s.baseURL, username)
 
 	fmt.Println("URL:", url)
 
-	// Criando a estrutura do limite de taxa
 	rateLimiting := map[string]any{
-		"name":  "rate-limiting",
-		"route": route,
+		"name": "rate-limiting",
+		"route": map[string]string{
+			"name": route,
+		},
 		"config": map[string]int{
 			"day": rateLimit,
 		},
 	}
 
-	// Convertendo a estrutura para JSON
 	payload, err := json.Marshal(rateLimiting)
 	if err != nil {
 		return fmt.Errorf("erro ao criar payload do limite de taxa: %w", err)
 	}
 
-	// Fazendo a requisição POST para o Kong
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
 	if err != nil {
 		return fmt.Errorf("erro ao criar requisição HTTP: %w", err)
@@ -101,25 +95,18 @@ func (s *kongAPI) RateLimitConsumer(username, route string, rateLimit int) error
 	return nil
 }
 
-func (s *kongAPI) CreateJWTFirebaseConsumer(username string) error {
-	url := fmt.Sprintf("%s/consumers/%s/plugins", s.baseURL, username)
+func (s *kongAPI) CreateACL(username, group string) error {
+	url := fmt.Sprintf("%s/consumers/%s/acls", s.baseURL, username)
 
-	// Criando a estrutura do plugin
-	jwtFirebase := map[string]any{
-		"name": "jwt-firebase",
-		"config": map[string]string{
-			"project_id":       "scheduler-wa",
-			"jwt_service_user": username,
-		},
+	groupData := map[string]any{
+		"group": group,
 	}
 
-	// Convertendo a estrutura para JSON
-	payload, err := json.Marshal(jwtFirebase)
+	payload, err := json.Marshal(groupData)
 	if err != nil {
 		return fmt.Errorf("erro ao criar payload do plugin: %w", err)
 	}
 
-	// Fazendo a requisição POST para o Kong
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
 	if err != nil {
 		return fmt.Errorf("erro ao criar requisição HTTP: %w", err)
@@ -135,10 +122,34 @@ func (s *kongAPI) CreateJWTFirebaseConsumer(username string) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusCreated {
-		return fmt.Errorf("erro: status %s ao criar plugin para o consumidor no Kong", resp.Status)
+		return fmt.Errorf("erro: status %s ao criar ACL para o consumidor no Kong", resp.Status)
 	}
 
-	fmt.Println("Plugin criado com sucesso!")
+	fmt.Println("ACL criado com sucesso!")
+
+	return nil
+}
+
+func (s *kongAPI) CreateAPIKey(username string) error {
+	url := fmt.Sprintf("%s/consumers/%s/key-auth", s.baseURL, username)
+
+	req, err := http.NewRequest("POST", url, nil)
+	if err != nil {
+		return fmt.Errorf("erro ao criar requisição HTTP: %w", err)
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("erro ao fazer requisição para o Kong: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusCreated {
+		return fmt.Errorf("erro: status %s ao criar chave de API para o consumidor no Kong", resp.Status)
+	}
+
+	fmt.Println("Chave de API criada com sucesso!")
 
 	return nil
 }

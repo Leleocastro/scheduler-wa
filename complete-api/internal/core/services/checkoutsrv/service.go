@@ -16,16 +16,61 @@ func New(kongRepo ports.APIGatewayRepository) *service {
 	}
 }
 
-func (s *service) Create(event domain.Event, limit int) error {
-	username := event.Data.Object.Metadata["username"]
+func (s *service) Create(event domain.Event, planName string) error {
+	username := event.Data.Object.CustomerEmail
 
-	//TODO: Buscar o plano e com base no plano planejar qual a rota que será liberada
+	var plan domain.Plan
 
-	fmt.Println("Criando consumidor no Kong...")
+	switch PlanName(planName) {
+	case Basic:
+		plan = domain.Plan{
+			Name:        "Basic",
+			WebSocket:   false,
+			LimitPerDay: 100,
+			Route:       "whatsapp-route",
+			Group:       "basic",
+		}
+	case Premium:
+		plan = domain.Plan{
+			Name:        "Premium",
+			WebSocket:   true,
+			LimitPerDay: 100,
+			Route:       "whatsapp-route",
+			Group:       "premium",
+		}
+	case Business:
+		plan = domain.Plan{
+			Name:        "Business",
+			WebSocket:   true,
+			LimitPerDay: 100000,
+			Route:       "whatsapp-route",
+			Group:       "business",
+		}
+	default:
+		return fmt.Errorf("invalid plan name")
+	}
 
-	if err := s.kongRepo.RateLimitConsumer(username, "whatsapp", limit); err != nil {
+	fmt.Println("Adicionando Rate Limit...")
+
+	if err := s.kongRepo.RateLimitConsumer(username, plan.Route, plan.LimitPerDay); err != nil {
+		return err
+	}
+
+	if err := s.kongRepo.CreateACL(username, plan.Group); err != nil {
+		return err
+	}
+
+	if err := s.kongRepo.CreateAPIKey(username); err != nil {
 		return err
 	}
 
 	return nil
 }
+
+type PlanName string
+
+const (
+	Basic    PlanName = "Basic"
+	Premium  PlanName = "Premium"
+	Business PlanName = "Business"
+)

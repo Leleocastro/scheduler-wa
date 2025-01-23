@@ -3,9 +3,12 @@ package main
 import (
 	"complete-api/internal/adapters/handlers/checkouthdl"
 	"complete-api/internal/adapters/handlers/gatewayhdl"
+	"complete-api/internal/adapters/handlers/validatorhdl"
 	"complete-api/internal/adapters/repositories/api_gateway"
+	"complete-api/internal/adapters/repositories/payment"
 	"complete-api/internal/core/services/checkoutsrv"
 	"complete-api/internal/core/services/gatewaysrv"
+	"complete-api/internal/core/services/paymentsrv"
 	"database/sql"
 	"fmt"
 	"os"
@@ -41,6 +44,11 @@ func main() {
 	initDB()
 
 	kongRepo := api_gateway.New(os.Getenv("KONG_ADMIN_URL"))
+	stripeRepo := payment.New(os.Getenv("STRIPE_SECRET_KEY"), os.Getenv("STRIPE_WEBHOOK_SECRET"))
+
+	paymentSrv := paymentsrv.New(stripeRepo)
+
+	validatorHandler := validatorhdl.NewValidatorHandler(paymentSrv)
 
 	// Cria o router Gin
 	router := gin.Default()
@@ -49,9 +57,9 @@ func main() {
 	{
 		checkoutSrv := checkoutsrv.New(kongRepo)
 
-		checkoutHandler := checkouthdl.NewHTTPHandler(checkoutSrv)
+		checkoutHandler := checkouthdl.NewHTTPHandler(checkoutSrv, paymentSrv)
 
-		checkout.POST("/webhook", checkoutHandler.Checkout)
+		checkout.POST("/webhook", validatorHandler.ValidateSignature, checkoutHandler.Checkout)
 	}
 
 	kong := router.Group("/gateway")
