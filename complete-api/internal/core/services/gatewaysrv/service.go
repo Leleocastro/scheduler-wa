@@ -24,3 +24,14 @@ func (s *service) CreateConsumer(username, customID string) error {
 
 	return nil
 }
+
+func (s *service) GetAPIKey(username string) (string, error) {
+	fmt.Println("Buscando chave de API no Kong...")
+
+	apiKey, err := s.kongRepo.GetAPIKey(username)
+	if err != nil {
+		return "", err
+	}
+
+	return apiKey, nil
+}

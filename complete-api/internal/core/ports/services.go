@@ -8,6 +8,7 @@ type CheckoutService interface {
 
 type GatewayService interface {
 	CreateConsumer(username, customID string) error
+	GetAPIKey(username string) (string, error)
 }
 
 type PaymentService interface {

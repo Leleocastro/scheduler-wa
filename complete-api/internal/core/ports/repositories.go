@@ -5,6 +5,7 @@ type APIGatewayRepository interface {
 	RateLimitConsumer(username, route string, rateLimit int) error
 	CreateACL(username, group string) error
 	CreateAPIKey(username string) error
+	GetAPIKey(username string) (string, error)
 }
 
 type PaymentRepository interface {

@@ -22,32 +22,21 @@ services:
     networks:
       - ms-network
 
-  whatsapp-api:
-    build: ./whatsapp-api
-    container_name: whatsapp-api
-    ports:
-      - "3000:3000"
-    environment:
-      - REDIS_HOST=redis
-      - POSTGRES_HOST=postgresql
-    networks:
-      - ms-network
-    depends_on:
-      - redis
-      - postgresql
-
   complete-api:
     build: ./complete-api
     container_name: complete-api
     ports:
-      - "4000:4000"
+      - "6000:6000"
     environment:
+      - STRIPE_SECRET_KEY=sk_test_51QCRX0RpWZoKXUjjat6kO9qFZUFQDj2OWoPHRz4AO25xvoT8rgF2UG0hWkrVcXrXRdfoSLMrRPl8UUfgjHTaBFAz0077Hll99H
+      - STRIPE_WEBHOOK_SECRET=whsec_BFvAELqOPQMXK1IEaKMgQl4MvW08ixa5
       - REDIS_HOST=redis
       - POSTGRES_HOST=postgresql
       - POSTGRES_USER=myuser
       - POSTGRES_PASSWORD=mypassword
       - POSTGRES_DB=mydatabase
       - POSTGRES_PORT=5432
+      - KONG_ADMIN_URL=http://159.223.108.72:4001
     networks:
       - ms-network
     depends_on:

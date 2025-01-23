@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sort"
 )
 
 type kongAPI struct {
@@ -150,4 +151,37 @@ func (s *kongAPI) CreateAPIKey(username string) error {
 	fmt.Println("Chave de API criada com sucesso!")
 
 	return nil
+}
+
+func (s *kongAPI) GetAPIKey(username string) (string, error) {
+	url := fmt.Sprintf("%s/consumers/%s/key-auth", s.baseURL, username)
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return "", fmt.Errorf("erro ao criar requisição HTTP: %w", err)
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("erro ao fazer requisição para o Kong: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("erro: status %s ao buscar chave de API para o consumidor no Kong", resp.Status)
+	}
+
+	var response domain.ApiKeyResponse
+	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+		return "", fmt.Errorf("erro ao decodificar resposta do Kong: %w", err)
+	}
+
+	sort.Slice(response.Data, func(i, j int) bool {
+		return response.Data[i].CreatedAt > response.Data[j].CreatedAt
+	})
+
+	fmt.Println("Chave de API obtida com sucesso!")
+
+	return response.Data[0].Key, nil
 }

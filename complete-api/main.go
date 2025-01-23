@@ -69,6 +69,8 @@ func main() {
 		gatewayHandler := gatewayhdl.NewHTTPHandler(gatewaySrv)
 
 		kong.POST("/consumer", gatewayHandler.CreateConsumer)
+
+		kong.GET("/api-key", gatewayHandler.GetAPIKey)
 	}
 
 	router.Run(":6000")
