@@ -5,8 +5,10 @@ import (
 	"complete-api/internal/core/domain"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"sort"
+	"strings"
 )
 
 type kongAPI struct {
@@ -184,4 +186,135 @@ func (s *kongAPI) GetAPIKey(username string) (string, error) {
 	fmt.Println("Chave de API obtida com sucesso!")
 
 	return response.Data[0].Key, nil
+}
+
+func (s *kongAPI) RemoveRateLimitConsumer(username, route string) error {
+	url := fmt.Sprintf("%s/consumers/%s/plugins", s.baseURL, username)
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return fmt.Errorf("erro ao criar requisição HTTP: %w", err)
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("erro ao fazer requisição para o Kong: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("erro: status %s ao buscar plugins do consumidor no Kong", resp.Status)
+	}
+
+	var response domain.PluginsResponse
+	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+		return fmt.Errorf("erro ao decodificar resposta do Kong: %w", err)
+	}
+
+	for _, plugin := range response.Data {
+		url := fmt.Sprintf("%s/routes/%s", s.baseURL, plugin.Route.ID)
+
+		req, err := http.NewRequest("GET", url, nil)
+		if err != nil {
+			return fmt.Errorf("erro ao criar requisição HTTP: %w", err)
+		}
+
+		client := &http.Client{}
+		resp, err := client.Do(req)
+		if err != nil {
+			return fmt.Errorf("erro ao fazer requisição para o Kong: %w", err)
+		}
+
+		if resp.StatusCode != http.StatusOK {
+			return fmt.Errorf("erro: status %s ao buscar rota no Kong", resp.Status)
+		}
+
+		var routeData domain.Route
+
+		if err := json.NewDecoder(resp.Body).Decode(&routeData); err != nil {
+			return fmt.Errorf("erro ao decodificar resposta do Kong: %w", err)
+		}
+
+		log.Println("name: ", routeData.Name)
+
+		if *routeData.Name == route {
+			url = fmt.Sprintf("%s/consumers/%s/plugins/%s", s.baseURL, username, plugin.ID)
+
+			req, err := http.NewRequest("DELETE", url, nil)
+			if err != nil {
+				return fmt.Errorf("erro ao criar requisição HTTP: %w", err)
+			}
+
+			client := &http.Client{}
+			resp, err := client.Do(req)
+			if err != nil {
+				return fmt.Errorf("erro ao fazer requisição para o Kong: %w", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != http.StatusNoContent {
+				return fmt.Errorf("erro: status %s ao remover plugin do consumidor no Kong", resp.Status)
+			}
+
+			fmt.Println("Limite de taxa removido com sucesso!")
+			return nil
+		}
+	}
+
+	return fmt.Errorf("erro: plugin de limite de taxa não encontrado para o consumidor no Kong")
+}
+
+func (s *kongAPI) RemoveACL(username, group string) error {
+	url := fmt.Sprintf("%s/consumers/%s/acls", s.baseURL, username)
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return fmt.Errorf("erro ao criar requisição HTTP: %w", err)
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("erro ao fazer requisição para o Kong: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("erro: status %s ao buscar ACLs do consumidor no Kong", resp.Status)
+	}
+
+	var response domain.ACLsResponse
+	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+		return fmt.Errorf("erro ao decodificar resposta do Kong: %w", err)
+	}
+
+	group = strings.ToLower(group)
+
+	for _, acl := range response.Data {
+		if acl.Group == group {
+			url = fmt.Sprintf("%s/consumers/%s/acls/%s", s.baseURL, username, acl.ID)
+
+			req, err := http.NewRequest("DELETE", url, nil)
+			if err != nil {
+				return fmt.Errorf("erro ao criar requisição HTTP: %w", err)
+			}
+
+			client := &http.Client{}
+			resp, err := client.Do(req)
+			if err != nil {
+				return fmt.Errorf("erro ao fazer requisição para o Kong: %w", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != http.StatusNoContent {
+				return fmt.Errorf("erro: status %s ao remover ACL do consumidor no Kong", resp.Status)
+			}
+
+			fmt.Println("ACL removido com sucesso!")
+			return nil
+		}
+	}
+
+	return fmt.Errorf("erro: ACL não encontrada para o consumidor no Kong")
 }

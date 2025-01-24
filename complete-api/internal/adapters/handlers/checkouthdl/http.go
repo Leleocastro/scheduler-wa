@@ -47,3 +47,26 @@ func (h *HTTPHandler) Checkout(c *gin.Context) {
 
 	c.JSON(200, gin.H{"message": "Checkout created successfully"})
 }
+
+func (h *HTTPHandler) CancelSubscription(c *gin.Context) {
+	var subscription domain.SubscriptionRoot
+
+	if err := c.BindJSON(&subscription); err != nil {
+		log.Printf("Erro ao fazer o bind do JSON: %v", err)
+		c.JSON(400, gin.H{"error": "Invalid JSON format"})
+		return
+	}
+
+	username, err := h.paymentSrv.GetEmailByID(subscription.Data.Object.Customer)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := h.checkoutSrv.CancelSubscription(subscription, username); err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(200, gin.H{"message": "Subscription canceled successfully"})
+}

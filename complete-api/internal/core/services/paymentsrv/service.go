@@ -19,3 +19,7 @@ func (s *service) ValidateSignature(payload []byte, sigHeader string) error {
 func (s *service) GetPlanByPriceID(priceID string) (string, error) {
 	return s.paymentRepo.GetPlanByPriceID(priceID)
 }
+
+func (s *service) GetEmailByID(customerID string) (string, error) {
+	return s.paymentRepo.GetEmailByID(customerID)
+}

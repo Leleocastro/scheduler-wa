@@ -29,7 +29,8 @@ services:
       - "6000:6000"
     environment:
       - STRIPE_SECRET_KEY=sk_test_51QCRX0RpWZoKXUjjat6kO9qFZUFQDj2OWoPHRz4AO25xvoT8rgF2UG0hWkrVcXrXRdfoSLMrRPl8UUfgjHTaBFAz0077Hll99H
-      - STRIPE_WEBHOOK_SECRET=whsec_BFvAELqOPQMXK1IEaKMgQl4MvW08ixa5
+      - STRIPE_WH_CHECKOUT=whsec_BFvAELqOPQMXK1IEaKMgQl4MvW08ixa5
+      - STRIPE_WH_CANCEL=whsec_2adS2wwof5PcDzMN4SCCaqKDjvfOlODM
       - REDIS_HOST=redis
       - POSTGRES_HOST=postgresql
       - POSTGRES_USER=myuser

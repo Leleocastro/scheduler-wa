@@ -3,7 +3,6 @@ package gatewayhdl
 import (
 	"complete-api/internal/core/domain"
 	"complete-api/internal/core/ports"
-	"log"
 
 	"github.com/gin-gonic/gin"
 )
@@ -36,8 +35,6 @@ func (h *HTTPHandler) CreateConsumer(c *gin.Context) {
 
 func (h *HTTPHandler) GetAPIKey(c *gin.Context) {
 	username := c.Query("username")
-
-	log.Println("Username: ", username)
 
 	apiKey, err := h.gatewaySrv.GetAPIKey(username)
 	if err != nil {

@@ -31,6 +31,7 @@ func (h *ValidatorHandler) ValidateSignature(c *gin.Context) {
 	sigHeader := c.Request.Header.Get("stripe-signature")
 
 	if err := h.paymentSrv.ValidateSignature(payload, sigHeader); err != nil {
+		log.Printf("Erro ao validar a assinatura: %v", err)
 		c.JSON(403, gin.H{"error": err.Error()})
 		return
 	}

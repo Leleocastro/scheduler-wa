@@ -14,6 +14,7 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
+	// "github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
 
@@ -40,11 +41,15 @@ func initDB() {
 }
 
 func main() {
+	// err := godotenv.Load()
+	// if err != nil {
+	// 	fmt.Println("Erro ao carregar o arquivo .env:", err)
+	// }
 	// Inicializa a conexão com o banco de dados
 	initDB()
 
 	kongRepo := api_gateway.New(os.Getenv("KONG_ADMIN_URL"))
-	stripeRepo := payment.New(os.Getenv("STRIPE_SECRET_KEY"), os.Getenv("STRIPE_WEBHOOK_SECRET"))
+	stripeRepo := payment.New(os.Getenv("STRIPE_SECRET_KEY"))
 
 	paymentSrv := paymentsrv.New(stripeRepo)
 
@@ -60,6 +65,7 @@ func main() {
 		checkoutHandler := checkouthdl.NewHTTPHandler(checkoutSrv, paymentSrv)
 
 		checkout.POST("/webhook", validatorHandler.ValidateSignature, checkoutHandler.Checkout)
+		checkout.POST("/cancel", validatorHandler.ValidateSignature, checkoutHandler.CancelSubscription)
 	}
 
 	kong := router.Group("/gateway")
