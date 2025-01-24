@@ -132,6 +132,16 @@ func (s *kongAPI) CreateACL(username, group string) error {
 }
 
 func (s *kongAPI) CreateAPIKey(username string) error {
+	apiKeys, err := getAPIKey(s.baseURL, username)
+	if err != nil {
+		return err
+	}
+
+	if len(apiKeys.Data) > 0 {
+		fmt.Println("Chave de API já existe!")
+		return nil
+	}
+
 	url := fmt.Sprintf("%s/consumers/%s/key-auth", s.baseURL, username)
 
 	req, err := http.NewRequest("POST", url, nil)
@@ -156,27 +166,9 @@ func (s *kongAPI) CreateAPIKey(username string) error {
 }
 
 func (s *kongAPI) GetAPIKey(username string) (string, error) {
-	url := fmt.Sprintf("%s/consumers/%s/key-auth", s.baseURL, username)
-
-	req, err := http.NewRequest("GET", url, nil)
+	response, err := getAPIKey(s.baseURL, username)
 	if err != nil {
-		return "", fmt.Errorf("erro ao criar requisição HTTP: %w", err)
-	}
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return "", fmt.Errorf("erro ao fazer requisição para o Kong: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("erro: status %s ao buscar chave de API para o consumidor no Kong", resp.Status)
-	}
-
-	var response domain.ApiKeyResponse
-	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
-		return "", fmt.Errorf("erro ao decodificar resposta do Kong: %w", err)
+		return "", err
 	}
 
 	sort.Slice(response.Data, func(i, j int) bool {
@@ -263,6 +255,33 @@ func (s *kongAPI) RemoveRateLimitConsumer(username, route string) error {
 	}
 
 	return fmt.Errorf("erro: plugin de limite de taxa não encontrado para o consumidor no Kong")
+}
+
+func getAPIKey(baseURL, username string) (*domain.ApiKeyResponse, error) {
+	url := fmt.Sprintf("%s/consumers/%s/key-auth", baseURL, username)
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("erro ao criar requisição HTTP: %w", err)
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("erro ao fazer requisição para o Kong: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("erro: status %s ao buscar chave de API para o consumidor no Kong", resp.Status)
+	}
+
+	var response domain.ApiKeyResponse
+	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+		return nil, fmt.Errorf("erro ao decodificar resposta do Kong: %w", err)
+	}
+
+	return &response, nil
 }
 
 func (s *kongAPI) RemoveACL(username, group string) error {
