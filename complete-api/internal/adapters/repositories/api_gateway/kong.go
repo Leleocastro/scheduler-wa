@@ -171,6 +171,10 @@ func (s *kongAPI) GetAPIKey(username string) (string, error) {
 		return "", err
 	}
 
+	if len(response.Data) == 0 {
+		return "", fmt.Errorf("erro: chave de API não encontrada para o consumidor no Kong")
+	}
+
 	sort.Slice(response.Data, func(i, j int) bool {
 		return response.Data[i].CreatedAt > response.Data[j].CreatedAt
 	})

@@ -3,18 +3,21 @@ package main
 import (
 	"complete-api/internal/adapters/handlers/checkouthdl"
 	"complete-api/internal/adapters/handlers/gatewayhdl"
+	"complete-api/internal/adapters/handlers/statshdl"
 	"complete-api/internal/adapters/handlers/validatorhdl"
 	"complete-api/internal/adapters/repositories/api_gateway"
 	"complete-api/internal/adapters/repositories/payment"
+	"complete-api/internal/adapters/repositories/stats"
 	"complete-api/internal/core/services/checkoutsrv"
 	"complete-api/internal/core/services/gatewaysrv"
 	"complete-api/internal/core/services/paymentsrv"
+	"complete-api/internal/core/services/statssrv"
 	"database/sql"
 	"fmt"
 	"os"
 
 	"github.com/gin-gonic/gin"
-	// "github.com/joho/godotenv"
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
 
@@ -41,15 +44,16 @@ func initDB() {
 }
 
 func main() {
-	// err := godotenv.Load()
-	// if err != nil {
-	// 	fmt.Println("Erro ao carregar o arquivo .env:", err)
-	// }
+	err := godotenv.Load()
+	if err != nil {
+		fmt.Println("Erro ao carregar o arquivo .env:", err)
+	}
 	// Inicializa a conexão com o banco de dados
 	initDB()
 
 	kongRepo := api_gateway.New(os.Getenv("KONG_ADMIN_URL"))
 	stripeRepo := payment.New(os.Getenv("STRIPE_SECRET_KEY"))
+	prometheusRepo := stats.New(os.Getenv("PROMETHEUS_URL"))
 
 	paymentSrv := paymentsrv.New(stripeRepo)
 
@@ -77,6 +81,15 @@ func main() {
 		kong.POST("/consumer", gatewayHandler.CreateConsumer)
 
 		kong.GET("/api-key", gatewayHandler.GetAPIKey)
+	}
+
+	api := router.Group("/api")
+	{
+		statsSrv := statssrv.New(prometheusRepo)
+
+		statsHandler := statshdl.NewHTTPHandler(statsSrv)
+
+		api.GET("/usage/:consumer", statsHandler.GetUsageByConsumer)
 	}
 
 	router.Run(":6000")

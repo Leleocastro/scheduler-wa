@@ -17,3 +17,7 @@ type PaymentService interface {
 	GetPlanByPriceID(priceID string) (string, error)
 	GetEmailByID(customerID string) (string, error)
 }
+
+type StatsService interface {
+	GetUsageByConsumer(username, startDate, endDate string) (domain.Usage, error)
+}
