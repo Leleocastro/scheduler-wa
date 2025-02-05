@@ -86,7 +86,7 @@ func mapUsageResponseToUsage(response domain.UsageResponse) domain.Usage {
 
 				if ok1 && ok2 {
 					// Converte o timestamp para data
-					date := time.Unix(int64(timestamp), 0).Format("2006-01-02")
+					date := time.Unix(int64(timestamp), 0).Add(-24 * time.Hour).Format("2006-01-02")
 
 					// Converte o count para inteiro
 					count, err := strconv.Atoi(countStr)
