@@ -23,7 +23,7 @@ func (s *service) GetUsageByConsumer(username, startDate, endDate string) (domai
 	var startTimestamp, endTimestamp int64
 
 	if startDate == "" {
-		now := time.Now().UTC()
+		now := time.Now().UTC().Add(24 * time.Hour)
 		startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
 		startTimestamp = startOfDay.Unix()
 	} else {
@@ -36,7 +36,7 @@ func (s *service) GetUsageByConsumer(username, startDate, endDate string) (domai
 	}
 
 	if endDate == "" {
-		now := time.Now().UTC()
+		now := time.Now().UTC().Add(24 * time.Hour)
 		endOfDay := time.Date(now.Year(), now.Month(), now.Day(), 23, 59, 59, 0, time.UTC)
 		endTimestamp = endOfDay.Unix()
 	} else {
