@@ -65,6 +65,8 @@ func main() {
 	// Cria o router Gin
 	router := gin.Default()
 
+	router.RedirectTrailingSlash = true
+
 	checkout := router.Group("/checkout")
 	{
 		checkoutSrv := checkoutsrv.New(kongRepo)
