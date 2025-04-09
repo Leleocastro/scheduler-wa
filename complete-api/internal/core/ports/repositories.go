@@ -1,6 +1,9 @@
 package ports
 
-import "complete-api/internal/core/domain"
+import (
+	"complete-api/internal/core/domain"
+	"time"
+)
 
 type APIGatewayRepository interface {
 	CreateConsumer(username, customID string) error
@@ -20,4 +23,15 @@ type PaymentRepository interface {
 
 type StatsRepository interface {
 	GetUsageByConsumer(username string, startDate, endDate int64) (domain.UsageResponse, error)
+}
+
+type RedisRepository interface {
+	Get(key string) (string, error)
+	Set(key string, value string, expiration time.Duration) error
+	Delete(key string) error
+	AddScheduledMessage(userID string, schedule domain.ScheduleMessage) error
+	GetZRangeByScore(userID string, min, max int64) ([]domain.ScheduleMessage, error)
+	RemoveZMember(userID string, member string) error
+	GetAllScheduledUsers() ([]string, error)
+	UpdateScheduledMessage(userID, id string, msg domain.ScheduleMessage) error
 }

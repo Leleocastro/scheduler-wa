@@ -3,14 +3,17 @@ package main
 import (
 	"complete-api/internal/adapters/handlers/checkouthdl"
 	"complete-api/internal/adapters/handlers/gatewayhdl"
+	"complete-api/internal/adapters/handlers/scheduleshdl"
 	"complete-api/internal/adapters/handlers/statshdl"
 	"complete-api/internal/adapters/handlers/validatorhdl"
 	"complete-api/internal/adapters/repositories/api_gateway"
 	"complete-api/internal/adapters/repositories/payment"
+	"complete-api/internal/adapters/repositories/redis"
 	"complete-api/internal/adapters/repositories/stats"
 	"complete-api/internal/core/services/checkoutsrv"
 	"complete-api/internal/core/services/gatewaysrv"
 	"complete-api/internal/core/services/paymentsrv"
+	"complete-api/internal/core/services/schedulessrv"
 	"complete-api/internal/core/services/statssrv"
 	"database/sql"
 	"fmt"
@@ -90,6 +93,22 @@ func main() {
 		statsHandler := statshdl.NewHTTPHandler(statsSrv)
 
 		api.GET("/usage/:consumer", statsHandler.GetUsageByConsumer)
+	}
+
+	schedules := router.Group("/schedules")
+	{
+		redisRepo := redis.New(os.Getenv("REDIS_HOST"), os.Getenv("REDIS_PASSWORD"))
+
+		scheduleSrv := schedulessrv.New(redisRepo)
+
+		go scheduleSrv.Run()
+
+		scheduleHandler := scheduleshdl.NewHTTPHandler(scheduleSrv)
+
+		schedules.POST("/", scheduleHandler.CreateSchedule)
+		schedules.GET("/", scheduleHandler.GetSchedules)
+		schedules.PUT("/:scheduleID", scheduleHandler.UpdateSchedule)
+		schedules.DELETE("/:scheduleID", scheduleHandler.DeleteSchedule)
 	}
 
 	router.Run(":6000")

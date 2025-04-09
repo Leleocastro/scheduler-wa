@@ -21,3 +21,10 @@ type PaymentService interface {
 type StatsService interface {
 	GetUsageByConsumer(username, startDate, endDate string) (domain.Usage, error)
 }
+
+type SchedulesService interface {
+	GetSchedules(username string) ([]domain.ScheduleMessage, error)
+	CreateSchedule(username string, schedule domain.ScheduleMessage) (domain.ScheduleMessage, error)
+	UpdateSchedule(username string, scheduleID string, schedule domain.ScheduleMessage) (domain.ScheduleMessage, error)
+	DeleteSchedule(username string, scheduleID string) error
+}
