@@ -65,8 +65,6 @@ func main() {
 	// Cria o router Gin
 	router := gin.Default()
 
-	router.RedirectTrailingSlash = true
-
 	checkout := router.Group("/checkout")
 	{
 		checkoutSrv := checkoutsrv.New(kongRepo)
@@ -107,8 +105,8 @@ func main() {
 
 		scheduleHandler := scheduleshdl.NewHTTPHandler(scheduleSrv)
 
-		schedules.POST("/", scheduleHandler.CreateSchedule)
-		schedules.GET("/", scheduleHandler.GetSchedules)
+		schedules.POST("", scheduleHandler.CreateSchedule)
+		schedules.GET("", scheduleHandler.GetSchedules)
 		schedules.PUT("/:scheduleID", scheduleHandler.UpdateSchedule)
 		schedules.DELETE("/:scheduleID", scheduleHandler.DeleteSchedule)
 	}
